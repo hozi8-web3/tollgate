@@ -37,7 +37,10 @@ pub async fn proxy_handler(
             tracing::error!("Unknown provider: {}", provider);
             return Response::builder()
                 .status(StatusCode::BAD_REQUEST)
-                .body(Body::from(format!("{{\"error\": \"Unknown provider: {}\"}}", provider)))
+                .body(Body::from(format!(
+                    "{{\"error\": \"Unknown provider: {}\"}}",
+                    provider
+                )))
                 .unwrap();
         }
     };
@@ -47,7 +50,8 @@ pub async fn proxy_handler(
 
     // 3. Parse request body to extract model info
     let body_json: Option<serde_json::Value> = serde_json::from_slice(&body).ok();
-    let original_model = body_json.as_ref()
+    let original_model = body_json
+        .as_ref()
         .and_then(|b| b.get("model"))
         .and_then(|m| m.as_str())
         .unwrap_or("unknown")
@@ -66,7 +70,11 @@ pub async fn proxy_handler(
 
     // 6. Check for block decision
     if route_decision.action == "block" {
-        tracing::warn!("[{}] Request blocked: {}", request_id, route_decision.block_reason.as_deref().unwrap_or("unknown"));
+        tracing::warn!(
+            "[{}] Request blocked: {}",
+            request_id,
+            route_decision.block_reason.as_deref().unwrap_or("unknown")
+        );
         return Response::builder()
             .status(StatusCode::TOO_MANY_REQUESTS)
             .body(Body::from(serde_json::json!({
@@ -80,9 +88,17 @@ pub async fn proxy_handler(
 
     // 7. Apply substitution if needed
     let (effective_provider, effective_model) = if route_decision.action == "substitute" {
-        tracing::info!("[{}] Substituting {} -> {} ({})", request_id,
-            original_model, route_decision.model, route_decision.substitution_reason.as_deref().unwrap_or(""));
-        (route_decision.provider.clone(), route_decision.model.clone())
+        tracing::info!(
+            "[{}] Substituting {} -> {} ({})",
+            request_id,
+            original_model,
+            route_decision.model,
+            route_decision.substitution_reason.as_deref().unwrap_or("")
+        );
+        (
+            route_decision.provider.clone(),
+            route_decision.model.clone(),
+        )
     } else {
         (provider.clone(), original_model.clone())
     };
@@ -102,7 +118,9 @@ pub async fn proxy_handler(
     };
 
     // 9. Build target URL
-    let effective_base = state.config.get_base_url(&effective_provider)
+    let effective_base = state
+        .config
+        .get_base_url(&effective_provider)
         .unwrap_or(base_url);
     let target_url = forwarder::build_target_url(&effective_base, &path);
 
@@ -117,9 +135,12 @@ pub async fn proxy_handler(
     // Inject API key if available and not already present
     if let Some(key) = &api_key {
         if provider == "anthropic" {
-            header_map.entry("x-api-key".to_string()).or_insert_with(|| key.clone());
+            header_map
+                .entry("x-api-key".to_string())
+                .or_insert_with(|| key.clone());
         } else {
-            header_map.entry("authorization".to_string())
+            header_map
+                .entry("authorization".to_string())
                 .or_insert_with(|| format!("Bearer {}", key));
         }
     }
@@ -127,14 +148,23 @@ pub async fn proxy_handler(
     // 11. Forward request
     let client = &state.http_client;
     let response = match forwarder::forward_request(
-        client, &target_url, method.as_str(), &header_map, final_body,
-    ).await {
+        client,
+        &target_url,
+        method.as_str(),
+        &header_map,
+        final_body,
+    )
+    .await
+    {
         Ok(resp) => resp,
         Err(e) => {
             tracing::error!("[{}] Forward error: {}", request_id, e);
             return Response::builder()
                 .status(StatusCode::BAD_GATEWAY)
-                .body(Body::from(format!("{{\"error\": \"Proxy forward error: {}\"}}", e)))
+                .body(Body::from(format!(
+                    "{{\"error\": \"Proxy forward error: {}\"}}",
+                    e
+                )))
                 .unwrap();
         }
     };
@@ -180,9 +210,12 @@ pub async fn proxy_handler(
                         }
                     }
                     Err(e) => {
-                        let _ = tx.send(Err(std::io::Error::new(
-                            std::io::ErrorKind::Other, e.to_string()
-                        ))).await;
+                        let _ = tx
+                            .send(Err(std::io::Error::new(
+                                std::io::ErrorKind::Other,
+                                e.to_string(),
+                            )))
+                            .await;
                         break;
                     }
                 }
@@ -190,12 +223,24 @@ pub async fn proxy_handler(
             drop(tx);
 
             // Extract usage from the accumulated SSE chunks
-            if let Some(final_data) = crate::proxy::streamer::extract_usage_from_sse_chunks(&all_chunks) {
+            if let Some(final_data) =
+                crate::proxy::streamer::extract_usage_from_sse_chunks(&all_chunks)
+            {
                 let usage = normalizer::normalize_response(&prov, &final_data);
                 log_request(
-                    &db, &pricing_table, &request_id, &prov, &model, &orig_model,
-                    was_substituted, &usage, latency_ms, anomaly_mult, &user_msg,
-                ).await;
+                    &db,
+                    &pricing_table,
+                    &request_id,
+                    &prov,
+                    &model,
+                    &orig_model,
+                    was_substituted,
+                    &usage,
+                    latency_ms,
+                    anomaly_mult,
+                    &user_msg,
+                )
+                .await;
             }
         });
 
@@ -210,7 +255,10 @@ pub async fn proxy_handler(
                 tracing::error!("[{}] Failed to read response body: {}", request_id, e);
                 return Response::builder()
                     .status(StatusCode::BAD_GATEWAY)
-                    .body(Body::from(format!("{{\"error\": \"Failed to read response: {}\"}}", e)))
+                    .body(Body::from(format!(
+                        "{{\"error\": \"Failed to read response: {}\"}}",
+                        e
+                    )))
                     .unwrap();
             }
         };
@@ -231,9 +279,19 @@ pub async fn proxy_handler(
 
             tokio::spawn(async move {
                 log_request(
-                    &db, &pricing_table, &rid, &prov, &model, &orig_model,
-                    was_substituted, &usage, latency_ms, anomaly_mult, &user_msg,
-                ).await;
+                    &db,
+                    &pricing_table,
+                    &rid,
+                    &prov,
+                    &model,
+                    &orig_model,
+                    was_substituted,
+                    &usage,
+                    latency_ms,
+                    anomaly_mult,
+                    &user_msg,
+                )
+                .await;
             });
         }
 
@@ -247,9 +305,9 @@ fn extract_last_user_message(body: &Option<serde_json::Value>) -> String {
         .and_then(|b| b.get("messages"))
         .and_then(|m| m.as_array())
         .and_then(|arr| {
-            arr.iter().rev().find(|msg| {
-                msg.get("role").and_then(|r| r.as_str()) == Some("user")
-            })
+            arr.iter()
+                .rev()
+                .find(|msg| msg.get("role").and_then(|r| r.as_str()) == Some("user"))
         })
         .and_then(|msg| msg.get("content"))
         .and_then(|c| {
@@ -288,15 +346,26 @@ async fn log_request(
 ) {
     // Calculate costs using actual token counts from the API response
     let costs = pricing::lookup(pricing_table, provider, model)
-        .map(|p| pricing::calculate_costs(
-            p, usage.input_tokens, usage.output_tokens,
-            usage.cache_read_tokens, usage.cache_write_tokens,
-        ))
+        .map(|p| {
+            pricing::calculate_costs(
+                p,
+                usage.input_tokens,
+                usage.output_tokens,
+                usage.cache_read_tokens,
+                usage.cache_write_tokens,
+            )
+        })
         .unwrap_or_else(|| {
-            tracing::warn!("No pricing data for {}/{}, costs will be zero", provider, model);
+            tracing::warn!(
+                "No pricing data for {}/{}, costs will be zero",
+                provider,
+                model
+            );
             pricing::CostBreakdown {
-                input_cost_usd: 0.0, output_cost_usd: 0.0,
-                cache_read_cost_usd: 0.0, cache_write_cost_usd: 0.0,
+                input_cost_usd: 0.0,
+                output_cost_usd: 0.0,
+                cache_read_cost_usd: 0.0,
+                cache_write_cost_usd: 0.0,
                 total_cost_usd: 0.0,
             }
         });
@@ -305,8 +374,12 @@ async fn log_request(
     let rolling_avg = db::read::get_rolling_avg_cost(db).unwrap_or(0.0);
     let is_anomaly = rolling_avg > 0.0 && costs.total_cost_usd > (rolling_avg * anomaly_multiplier);
     let anomaly_reason = if is_anomaly {
-        Some(format!("Cost ${:.4} is {:.1}x the 7-day average ${:.4}",
-            costs.total_cost_usd, costs.total_cost_usd / rolling_avg, rolling_avg))
+        Some(format!(
+            "Cost ${:.4} is {:.1}x the 7-day average ${:.4}",
+            costs.total_cost_usd,
+            costs.total_cost_usd / rolling_avg,
+            rolling_avg
+        ))
     } else {
         None
     };
@@ -346,7 +419,13 @@ async fn log_request(
 /// Simple keyword-based task classification.
 fn classify_task(message: &str) -> String {
     let msg = message.to_lowercase();
-    if msg.contains("```") || msg.contains("code") || msg.contains("function") || msg.contains("implement") || msg.contains("debug") || msg.contains("fix") {
+    if msg.contains("```")
+        || msg.contains("code")
+        || msg.contains("function")
+        || msg.contains("implement")
+        || msg.contains("debug")
+        || msg.contains("fix")
+    {
         "code".to_string()
     } else if msg.contains("summarize") || msg.contains("summary") || msg.contains("tldr") {
         "summarization".to_string()
@@ -356,11 +435,20 @@ fn classify_task(message: &str) -> String {
         "classification".to_string()
     } else if msg.contains("extract") || msg.contains("parse") || msg.contains("json") {
         "data_extraction".to_string()
-    } else if msg.contains("write") || msg.contains("story") || msg.contains("poem") || msg.contains("creative") {
+    } else if msg.contains("write")
+        || msg.contains("story")
+        || msg.contains("poem")
+        || msg.contains("creative")
+    {
         "creative_writing".to_string()
     } else if msg.contains("analyze") || msg.contains("analysis") || msg.contains("compare") {
         "analysis".to_string()
-    } else if msg.contains("?") || msg.contains("what") || msg.contains("how") || msg.contains("why") || msg.contains("explain") {
+    } else if msg.contains("?")
+        || msg.contains("what")
+        || msg.contains("how")
+        || msg.contains("why")
+        || msg.contains("explain")
+    {
         "question_answering".to_string()
     } else {
         "other".to_string()

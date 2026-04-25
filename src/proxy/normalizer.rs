@@ -20,14 +20,21 @@ pub fn normalize_openai(body: &Value) -> NormalizedUsage {
 
     if let Some(u) = usage {
         norm.input_tokens = u.get("prompt_tokens").and_then(|v| v.as_i64()).unwrap_or(0);
-        norm.output_tokens = u.get("completion_tokens").and_then(|v| v.as_i64()).unwrap_or(0);
+        norm.output_tokens = u
+            .get("completion_tokens")
+            .and_then(|v| v.as_i64())
+            .unwrap_or(0);
         // OpenAI cached tokens
         if let Some(details) = u.get("prompt_tokens_details") {
-            norm.cache_read_tokens = details.get("cached_tokens").and_then(|v| v.as_i64()).unwrap_or(0);
+            norm.cache_read_tokens = details
+                .get("cached_tokens")
+                .and_then(|v| v.as_i64())
+                .unwrap_or(0);
         }
     }
 
-    norm.stop_reason = body.get("choices")
+    norm.stop_reason = body
+        .get("choices")
         .and_then(|c| c.as_array())
         .and_then(|arr| arr.first())
         .and_then(|c| c.get("finish_reason"))
@@ -48,11 +55,20 @@ pub fn normalize_anthropic(body: &Value) -> NormalizedUsage {
     if let Some(u) = usage {
         norm.input_tokens = u.get("input_tokens").and_then(|v| v.as_i64()).unwrap_or(0);
         norm.output_tokens = u.get("output_tokens").and_then(|v| v.as_i64()).unwrap_or(0);
-        norm.cache_read_tokens = u.get("cache_read_input_tokens").and_then(|v| v.as_i64()).unwrap_or(0);
-        norm.cache_write_tokens = u.get("cache_creation_input_tokens").and_then(|v| v.as_i64()).unwrap_or(0);
+        norm.cache_read_tokens = u
+            .get("cache_read_input_tokens")
+            .and_then(|v| v.as_i64())
+            .unwrap_or(0);
+        norm.cache_write_tokens = u
+            .get("cache_creation_input_tokens")
+            .and_then(|v| v.as_i64())
+            .unwrap_or(0);
     }
 
-    norm.stop_reason = body.get("stop_reason").and_then(|v| v.as_str()).map(String::from);
+    norm.stop_reason = body
+        .get("stop_reason")
+        .and_then(|v| v.as_str())
+        .map(String::from);
     norm.model = body.get("model").and_then(|v| v.as_str()).map(String::from);
 
     norm
@@ -65,12 +81,23 @@ pub fn normalize_response(provider: &str, body: &Value) -> NormalizedUsage {
         "openai" | "groq" => normalize_openai(body),
         _ => {
             // Try OpenAI format first (most common), fall back to Anthropic
-            if body.get("usage").and_then(|u| u.get("prompt_tokens")).is_some() {
+            if body
+                .get("usage")
+                .and_then(|u| u.get("prompt_tokens"))
+                .is_some()
+            {
                 normalize_openai(body)
-            } else if body.get("usage").and_then(|u| u.get("input_tokens")).is_some() {
+            } else if body
+                .get("usage")
+                .and_then(|u| u.get("input_tokens"))
+                .is_some()
+            {
                 normalize_anthropic(body)
             } else {
-                tracing::warn!("Unknown response format for provider '{}', returning zero usage", provider);
+                tracing::warn!(
+                    "Unknown response format for provider '{}', returning zero usage",
+                    provider
+                );
                 NormalizedUsage::default()
             }
         }

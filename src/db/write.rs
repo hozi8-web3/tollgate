@@ -31,7 +31,9 @@ pub struct RequestRow {
 
 /// Insert a request log row into the database.
 pub fn insert_request(db: &DbPool, row: &RequestRow) -> Result<()> {
-    let conn = db.lock().map_err(|e| anyhow::anyhow!("DB lock error: {}", e))?;
+    let conn = db
+        .lock()
+        .map_err(|e| anyhow::anyhow!("DB lock error: {}", e))?;
     conn.execute(
         "INSERT INTO requests (
             id, timestamp, provider, model, original_model, was_substituted,

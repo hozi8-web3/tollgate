@@ -3,7 +3,9 @@
 
 #[cfg(feature = "gui")]
 pub fn launch_gui() -> anyhow::Result<()> {
-    tracing::info!("GUI mode is not yet implemented. Please use the web dashboard at localhost:4001.");
+    tracing::info!(
+        "GUI mode is not yet implemented. Please use the web dashboard at localhost:4001."
+    );
     Ok(())
 }
 

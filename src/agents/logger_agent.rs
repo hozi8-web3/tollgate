@@ -31,13 +31,15 @@ pub fn compute_log_entry(
     task_type: &str,
 ) -> LogEntry {
     let costs = pricing::lookup(pricing_table, provider, model)
-        .map(|p| pricing::calculate_costs(
-            p,
-            usage.input_tokens,
-            usage.output_tokens,
-            usage.cache_read_tokens,
-            usage.cache_write_tokens,
-        ))
+        .map(|p| {
+            pricing::calculate_costs(
+                p,
+                usage.input_tokens,
+                usage.output_tokens,
+                usage.cache_read_tokens,
+                usage.cache_write_tokens,
+            )
+        })
         .unwrap_or(pricing::CostBreakdown {
             input_cost_usd: 0.0,
             output_cost_usd: 0.0,
@@ -46,14 +48,12 @@ pub fn compute_log_entry(
             total_cost_usd: 0.0,
         });
 
-    let anomaly = rolling_7d_avg > 0.0
-        && costs.total_cost_usd > (rolling_7d_avg * anomaly_multiplier);
+    let anomaly =
+        rolling_7d_avg > 0.0 && costs.total_cost_usd > (rolling_7d_avg * anomaly_multiplier);
     let anomaly_reason = if anomaly {
         Some(format!(
             "Cost ${:.4} exceeds {:.1}x the 7-day average of ${:.4}",
-            costs.total_cost_usd,
-            anomaly_multiplier,
-            rolling_7d_avg,
+            costs.total_cost_usd, anomaly_multiplier, rolling_7d_avg,
         ))
     } else {
         None

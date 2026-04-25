@@ -1,6 +1,6 @@
+pub mod read;
 pub mod schema;
 pub mod write;
-pub mod read;
 
 use anyhow::Result;
 use rusqlite::Connection;

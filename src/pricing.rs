@@ -23,19 +23,30 @@ pub fn load_pricing() -> Result<PricingTable> {
 }
 
 /// Look up pricing for a given provider and model.
-pub fn lookup<'a>(table: &'a PricingTable, provider: &str, model: &str) -> Option<&'a ModelPricing> {
+pub fn lookup<'a>(
+    table: &'a PricingTable,
+    provider: &str,
+    model: &str,
+) -> Option<&'a ModelPricing> {
     table.get(provider).and_then(|models| models.get(model))
 }
 
 /// Calculate costs from actual token counts returned by the API.
-pub fn calculate_costs(pricing: &ModelPricing, input_tokens: i64, output_tokens: i64,
-                       cache_read_tokens: i64, cache_write_tokens: i64) -> CostBreakdown {
+pub fn calculate_costs(
+    pricing: &ModelPricing,
+    input_tokens: i64,
+    output_tokens: i64,
+    cache_read_tokens: i64,
+    cache_write_tokens: i64,
+) -> CostBreakdown {
     let input_cost = (input_tokens as f64 / 1_000_000.0) * pricing.input_per_1m;
     let output_cost = (output_tokens as f64 / 1_000_000.0) * pricing.output_per_1m;
-    let cache_read_cost = pricing.cache_read_per_1m
+    let cache_read_cost = pricing
+        .cache_read_per_1m
         .map(|rate| (cache_read_tokens as f64 / 1_000_000.0) * rate)
         .unwrap_or(0.0);
-    let cache_write_cost = pricing.cache_write_per_1m
+    let cache_write_cost = pricing
+        .cache_write_per_1m
         .map(|rate| (cache_write_tokens as f64 / 1_000_000.0) * rate)
         .unwrap_or(0.0);
     let total = input_cost + output_cost + cache_read_cost + cache_write_cost;

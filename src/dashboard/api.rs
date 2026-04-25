@@ -15,7 +15,9 @@ pub struct PeriodParams {
     pub days: i64,
 }
 
-fn default_period() -> i64 { 7 }
+fn default_period() -> i64 {
+    7
+}
 
 #[derive(Deserialize)]
 pub struct PaginationParams {
@@ -25,7 +27,9 @@ pub struct PaginationParams {
     pub offset: i64,
 }
 
-fn default_limit() -> i64 { 50 }
+fn default_limit() -> i64 {
+    50
+}
 
 /// Health check.
 pub async fn health() -> Json<Value> {
@@ -100,12 +104,28 @@ pub async fn insights(
     State(state): State<AppState>,
     Query(params): Query<PeriodParams>,
 ) -> Json<Value> {
-    let stats = match read::get_stats(&state.db, params.days) { Ok(s) => s, Err(e) => return Json(json!({"error": e.to_string()})) };
-    let models = match read::get_model_breakdown(&state.db, params.days) { Ok(m) => m, Err(e) => return Json(json!({"error": e.to_string()})) };
-    let tasks = match read::get_task_breakdown(&state.db, params.days) { Ok(t) => t, Err(e) => return Json(json!({"error": e.to_string()})) };
-    let cache = match read::get_cache_stats(&state.db, params.days) { Ok(c) => c, Err(e) => return Json(json!({"error": e.to_string()})) };
-    let anomalies = match read::get_anomaly_stats(&state.db, params.days) { Ok(a) => a, Err(e) => return Json(json!({"error": e.to_string()})) };
+    let stats = match read::get_stats(&state.db, params.days) {
+        Ok(s) => s,
+        Err(e) => return Json(json!({"error": e.to_string()})),
+    };
+    let models = match read::get_model_breakdown(&state.db, params.days) {
+        Ok(m) => m,
+        Err(e) => return Json(json!({"error": e.to_string()})),
+    };
+    let tasks = match read::get_task_breakdown(&state.db, params.days) {
+        Ok(t) => t,
+        Err(e) => return Json(json!({"error": e.to_string()})),
+    };
+    let cache = match read::get_cache_stats(&state.db, params.days) {
+        Ok(c) => c,
+        Err(e) => return Json(json!({"error": e.to_string()})),
+    };
+    let anomalies = match read::get_anomaly_stats(&state.db, params.days) {
+        Ok(a) => a,
+        Err(e) => return Json(json!({"error": e.to_string()})),
+    };
 
-    let output = insights_agent::generate_insights(&stats, &models, &tasks, &cache, &anomalies, params.days);
+    let output =
+        insights_agent::generate_insights(&stats, &models, &tasks, &cache, &anomalies, params.days);
     Json(serde_json::to_value(output).unwrap_or(json!({"error": "serialization failed"})))
 }

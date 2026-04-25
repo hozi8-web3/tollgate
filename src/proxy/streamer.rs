@@ -6,9 +6,7 @@ use tokio_stream::wrappers::ReceiverStream;
 
 /// Stream an SSE response back to the client while capturing chunks for token extraction.
 /// Returns the full accumulated body bytes and a streaming Body for the client.
-pub async fn stream_response(
-    response: reqwest::Response,
-) -> Result<(Body, Vec<Bytes>)> {
+pub async fn stream_response(response: reqwest::Response) -> Result<(Body, Vec<Bytes>)> {
     let (tx, rx) = tokio::sync::mpsc::channel::<Result<Bytes, std::io::Error>>(32);
     let chunks: Vec<Bytes> = Vec::new();
 
@@ -26,7 +24,12 @@ pub async fn stream_response(
                     }
                 }
                 Err(e) => {
-                    let _ = tx.send(Err(std::io::Error::new(std::io::ErrorKind::Other, e.to_string()))).await;
+                    let _ = tx
+                        .send(Err(std::io::Error::new(
+                            std::io::ErrorKind::Other,
+                            e.to_string(),
+                        )))
+                        .await;
                     break;
                 }
             }
@@ -45,7 +48,8 @@ pub async fn stream_response(
 /// Parse SSE stream data to extract the final usage chunk.
 /// Many providers send usage data in the final SSE `data: [DONE]` or a `data: {...}` with usage.
 pub fn extract_usage_from_sse_chunks(chunks: &[Bytes]) -> Option<serde_json::Value> {
-    let full_text = chunks.iter()
+    let full_text = chunks
+        .iter()
         .filter_map(|c| std::str::from_utf8(c).ok())
         .collect::<String>();
 

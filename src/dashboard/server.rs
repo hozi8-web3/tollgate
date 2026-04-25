@@ -1,12 +1,8 @@
-use axum::{
-    Router,
-    routing::get,
-    response::Html,
-};
-use tower_http::cors::{CorsLayer, Any};
+use axum::{response::Html, routing::get, Router};
+use tower_http::cors::{Any, CorsLayer};
 
-use crate::AppState;
 use super::api;
+use crate::AppState;
 
 /// Create the dashboard axum router.
 pub fn create_router(state: AppState) -> Router {
@@ -34,10 +30,22 @@ async fn serve_index() -> Html<&'static str> {
     Html(include_str!("static/index.html"))
 }
 
-async fn serve_js() -> ([(axum::http::header::HeaderName, &'static str); 1], &'static str) {
-    ([(axum::http::header::CONTENT_TYPE, "application/javascript")], include_str!("static/app.js"))
+async fn serve_js() -> (
+    [(axum::http::header::HeaderName, &'static str); 1],
+    &'static str,
+) {
+    (
+        [(axum::http::header::CONTENT_TYPE, "application/javascript")],
+        include_str!("static/app.js"),
+    )
 }
 
-async fn serve_css() -> ([(axum::http::header::HeaderName, &'static str); 1], &'static str) {
-    ([(axum::http::header::CONTENT_TYPE, "text/css")], include_str!("static/style.css"))
+async fn serve_css() -> (
+    [(axum::http::header::HeaderName, &'static str); 1],
+    &'static str,
+) {
+    (
+        [(axum::http::header::CONTENT_TYPE, "text/css")],
+        include_str!("static/style.css"),
+    )
 }

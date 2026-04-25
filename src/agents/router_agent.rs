@@ -3,7 +3,7 @@ use crate::config::AppConfig;
 /// Router Agent decision output.
 #[derive(Debug, Clone)]
 pub struct RouteDecision {
-    pub action: String,      // "forward" | "substitute" | "block"
+    pub action: String, // "forward" | "substitute" | "block"
     pub provider: String,
     pub model: String,
     pub substitution_reason: Option<String>,
@@ -62,7 +62,15 @@ pub fn decide_route(
 
 /// Check if a message looks like a simple task.
 fn is_simple_task(msg: &str) -> bool {
-    let simple_verbs = ["classify", "translate", "summarize", "extract", "list", "label", "categorize"];
+    let simple_verbs = [
+        "classify",
+        "translate",
+        "summarize",
+        "extract",
+        "list",
+        "label",
+        "categorize",
+    ];
     let is_short = msg.len() < 200;
     let has_simple_verb = simple_verbs.iter().any(|v| msg.contains(v));
     let no_code = !msg.contains("```");

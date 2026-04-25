@@ -147,13 +147,18 @@ impl AppConfig {
         };
 
         if config_path.exists() {
-            let content = std::fs::read_to_string(&config_path)
-                .with_context(|| format!("Failed to read config file: {}", config_path.display()))?;
-            let config: AppConfig = toml::from_str(&content)
-                .with_context(|| format!("Failed to parse config file: {}", config_path.display()))?;
+            let content = std::fs::read_to_string(&config_path).with_context(|| {
+                format!("Failed to read config file: {}", config_path.display())
+            })?;
+            let config: AppConfig = toml::from_str(&content).with_context(|| {
+                format!("Failed to parse config file: {}", config_path.display())
+            })?;
             Ok(config)
         } else {
-            tracing::info!("No config file found at {}, using defaults", config_path.display());
+            tracing::info!(
+                "No config file found at {}, using defaults",
+                config_path.display()
+            );
             Ok(AppConfig::default())
         }
     }

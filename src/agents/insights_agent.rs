@@ -1,6 +1,6 @@
 use serde::Serialize;
 
-use crate::db::read::{ModelBreakdown, TaskBreakdown, CacheStats, AnomalyStats, PeriodStats};
+use crate::db::read::{AnomalyStats, CacheStats, ModelBreakdown, PeriodStats, TaskBreakdown};
 
 /// Insights output — generated from aggregated stats.
 #[derive(Debug, Serialize, Clone)]
@@ -35,8 +35,15 @@ pub fn generate_insights(
 
     // Trend calculation
     let (trend, trend_pct) = if stats.prev_period_spend_usd > 0.0 {
-        let pct = ((stats.spend_usd - stats.prev_period_spend_usd) / stats.prev_period_spend_usd) * 100.0;
-        let t = if pct > 5.0 { "up" } else if pct < -5.0 { "down" } else { "stable" };
+        let pct =
+            ((stats.spend_usd - stats.prev_period_spend_usd) / stats.prev_period_spend_usd) * 100.0;
+        let t = if pct > 5.0 {
+            "up"
+        } else if pct < -5.0 {
+            "down"
+        } else {
+            "stable"
+        };
         (t.to_string(), pct)
     } else {
         ("stable".to_string(), 0.0)
@@ -131,14 +138,20 @@ pub fn generate_insights(
     let top_insight = if let Some(first_rec) = recommendations.first() {
         first_rec.detail.clone()
     } else if stats.requests > 0 {
-        format!("Avg cost per request: ${:.4}", stats.spend_usd / stats.requests as f64)
+        format!(
+            "Avg cost per request: ${:.4}",
+            stats.spend_usd / stats.requests as f64
+        )
     } else {
         "No requests tracked yet.".to_string()
     };
 
     // Anomaly note
     let anomaly_note = if anomalies.anomalies_count > 0 {
-        Some(format!("{} anomalous requests detected this period.", anomalies.anomalies_count))
+        Some(format!(
+            "{} anomalous requests detected this period.",
+            anomalies.anomalies_count
+        ))
     } else {
         None
     };

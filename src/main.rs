@@ -1,10 +1,10 @@
+mod agents;
 mod config;
+mod dashboard;
+mod db;
+mod gui;
 mod pricing;
 mod proxy;
-mod agents;
-mod db;
-mod dashboard;
-mod gui;
 
 use anyhow::Result;
 use axum::Router;
@@ -24,7 +24,11 @@ pub struct AppState {
 
 /// Tollgate — LLM Cost Tracker & Optimizer
 #[derive(Parser)]
-#[command(name = "lct", version, about = "Tollgate — Track and optimize your LLM API costs")]
+#[command(
+    name = "lct",
+    version,
+    about = "Tollgate — Track and optimize your LLM API costs"
+)]
 struct Cli {
     #[command(subcommand)]
     command: Commands,
@@ -113,7 +117,10 @@ async fn main() -> Result<()> {
     let pricing_table = pricing::load_pricing()?;
 
     match cli.command {
-        Commands::Start { no_dashboard, gui: use_gui } => {
+        Commands::Start {
+            no_dashboard,
+            gui: use_gui,
+        } => {
             cmd_start(cfg, db_pool, pricing_table, no_dashboard, use_gui).await?;
         }
         Commands::Stats { days, json } => {
@@ -155,7 +162,10 @@ async fn cmd_start(
 
     // Build proxy router
     let proxy_app = Router::new()
-        .route("/{provider}/{*path}", axum::routing::any(proxy::router::proxy_handler))
+        .route(
+            "/{provider}/{*path}",
+            axum::routing::any(proxy::router::proxy_handler),
+        )
         .with_state(state.clone());
 
     let proxy_addr = format!("{}:{}", cfg.proxy.host, cfg.proxy.port);
@@ -192,7 +202,11 @@ async fn cmd_start(
             gui::launch_gui()?;
         }
 
-        tracing::info!("Starting proxy on {} and dashboard on {}", proxy_addr, dashboard_addr);
+        tracing::info!(
+            "Starting proxy on {} and dashboard on {}",
+            proxy_addr,
+            dashboard_addr
+        );
 
         // Run both servers concurrently
         tokio::select! {
@@ -229,15 +243,20 @@ fn cmd_stats(db_pool: &db::DbPool, days: i64, as_json: bool) -> Result<()> {
         println!("  🔤 Output Tokens: {}", stats.output_tokens);
 
         if stats.requests > 0 {
-            println!("  📊 Avg Cost/Req:  ${:.6}", stats.spend_usd / stats.requests as f64);
+            println!(
+                "  📊 Avg Cost/Req:  ${:.6}",
+                stats.spend_usd / stats.requests as f64
+            );
         }
 
         if !models.is_empty() {
             println!();
             println!("  Model Breakdown:");
             for m in &models {
-                println!("    {} ({}) — ${:.4} ({} reqs, {:.0}ms avg)",
-                    m.model, m.provider, m.spend_usd, m.requests, m.avg_latency_ms);
+                println!(
+                    "    {} ({}) — ${:.4} ({} reqs, {:.0}ms avg)",
+                    m.model, m.provider, m.spend_usd, m.requests, m.avg_latency_ms
+                );
             }
         }
 
@@ -256,22 +275,44 @@ fn cmd_export(db_pool: &db::DbPool, format: &str, output: Option<PathBuf>) -> Re
         "csv" => {
             let mut wtr = csv::Writer::from_writer(Vec::new());
             wtr.write_record([
-                "id", "timestamp", "provider", "model", "original_model",
-                "was_substituted", "input_tokens", "output_tokens",
-                "cache_read_tokens", "cache_write_tokens",
-                "input_cost_usd", "output_cost_usd", "cache_read_cost_usd",
-                "cache_write_cost_usd", "total_cost_usd", "latency_ms",
-                "stop_reason", "task_type", "anomaly",
+                "id",
+                "timestamp",
+                "provider",
+                "model",
+                "original_model",
+                "was_substituted",
+                "input_tokens",
+                "output_tokens",
+                "cache_read_tokens",
+                "cache_write_tokens",
+                "input_cost_usd",
+                "output_cost_usd",
+                "cache_read_cost_usd",
+                "cache_write_cost_usd",
+                "total_cost_usd",
+                "latency_ms",
+                "stop_reason",
+                "task_type",
+                "anomaly",
             ])?;
             for r in &rows {
                 wtr.write_record([
-                    &r.id, &r.timestamp, &r.provider, &r.model, &r.original_model,
+                    &r.id,
+                    &r.timestamp,
+                    &r.provider,
+                    &r.model,
+                    &r.original_model,
                     &r.was_substituted.to_string(),
-                    &r.input_tokens.to_string(), &r.output_tokens.to_string(),
-                    &r.cache_read_tokens.to_string(), &r.cache_write_tokens.to_string(),
-                    &format!("{:.6}", r.input_cost_usd), &format!("{:.6}", r.output_cost_usd),
-                    &format!("{:.6}", r.cache_read_cost_usd), &format!("{:.6}", r.cache_write_cost_usd),
-                    &format!("{:.6}", r.total_cost_usd), &r.latency_ms.to_string(),
+                    &r.input_tokens.to_string(),
+                    &r.output_tokens.to_string(),
+                    &r.cache_read_tokens.to_string(),
+                    &r.cache_write_tokens.to_string(),
+                    &format!("{:.6}", r.input_cost_usd),
+                    &format!("{:.6}", r.output_cost_usd),
+                    &format!("{:.6}", r.cache_read_cost_usd),
+                    &format!("{:.6}", r.cache_write_cost_usd),
+                    &format!("{:.6}", r.total_cost_usd),
+                    &r.latency_ms.to_string(),
                     r.stop_reason.as_deref().unwrap_or(""),
                     r.task_type.as_deref().unwrap_or(""),
                     &r.anomaly.to_string(),
@@ -299,7 +340,10 @@ fn cmd_export(db_pool: &db::DbPool, format: &str, output: Option<PathBuf>) -> Re
 fn cmd_config(key: &str, value: Option<&str>) {
     match value {
         Some(v) => {
-            println!("Config: set {} = {} (edit ~/.lct/config.toml to persist)", key, v);
+            println!(
+                "Config: set {} = {} (edit ~/.lct/config.toml to persist)",
+                key, v
+            );
         }
         None => {
             println!("Config: {} (edit ~/.lct/config.toml)", key);
@@ -314,8 +358,10 @@ fn cmd_pricing(action: PricingAction, table: &pricing::PricingTable) {
             for (provider, models) in table {
                 println!("\n  {} ({} models):", provider, models.len());
                 for (model, p) in models {
-                    println!("    {} — in: ${:.2}/1M, out: ${:.2}/1M",
-                        model, p.input_per_1m, p.output_per_1m);
+                    println!(
+                        "    {} — in: ${:.2}/1M, out: ${:.2}/1M",
+                        model, p.input_per_1m, p.output_per_1m
+                    );
                 }
             }
             println!();
@@ -344,7 +390,9 @@ fn cmd_reset(db_pool: &db::DbPool) -> Result<()> {
 fn open_browser(url: &str) -> Result<()> {
     #[cfg(target_os = "windows")]
     {
-        std::process::Command::new("cmd").args(["/C", "start", url]).spawn()?;
+        std::process::Command::new("cmd")
+            .args(["/C", "start", url])
+            .spawn()?;
     }
     #[cfg(target_os = "macos")]
     {
