@@ -25,9 +25,7 @@ pub async fn stream_response(response: reqwest::Response) -> Result<(Body, Vec<B
                     }
                 }
                 Err(e) => {
-                    let _ = tx
-                        .send(Err(std::io::Error::other(e.to_string())))
-                        .await;
+                    let _ = tx.send(Err(std::io::Error::other(e.to_string()))).await;
                     break;
                 }
             }

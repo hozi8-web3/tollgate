@@ -210,11 +210,7 @@ pub async fn proxy_handler(
                         }
                     }
                     Err(e) => {
-                        let _ = tx
-                            .send(Err(std::io::Error::other(
-                                e.to_string()
-                            )))
-                            .await;
+                        let _ = tx.send(Err(std::io::Error::other(e.to_string()))).await;
                         break;
                     }
                 }
