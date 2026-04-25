@@ -211,9 +211,8 @@ pub async fn proxy_handler(
                     }
                     Err(e) => {
                         let _ = tx
-                            .send(Err(std::io::Error::new(
-                                std::io::ErrorKind::Other,
-                                e.to_string(),
+                            .send(Err(std::io::Error::other(
+                                e.to_string()
                             )))
                             .await;
                         break;
@@ -331,6 +330,7 @@ fn extract_last_user_message(body: &Option<serde_json::Value>) -> String {
 }
 
 /// Log a completed request to the database with accurate token counts and costs.
+#[allow(clippy::too_many_arguments)]
 async fn log_request(
     db: &db::DbPool,
     pricing_table: &pricing::PricingTable,

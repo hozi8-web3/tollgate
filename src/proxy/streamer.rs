@@ -6,6 +6,7 @@ use tokio_stream::wrappers::ReceiverStream;
 
 /// Stream an SSE response back to the client while capturing chunks for token extraction.
 /// Returns the full accumulated body bytes and a streaming Body for the client.
+#[allow(dead_code)]
 pub async fn stream_response(response: reqwest::Response) -> Result<(Body, Vec<Bytes>)> {
     let (tx, rx) = tokio::sync::mpsc::channel::<Result<Bytes, std::io::Error>>(32);
     let chunks: Vec<Bytes> = Vec::new();
@@ -25,10 +26,7 @@ pub async fn stream_response(response: reqwest::Response) -> Result<(Body, Vec<B
                 }
                 Err(e) => {
                     let _ = tx
-                        .send(Err(std::io::Error::new(
-                            std::io::ErrorKind::Other,
-                            e.to_string(),
-                        )))
+                        .send(Err(std::io::Error::other(e.to_string())))
                         .await;
                     break;
                 }
@@ -56,8 +54,7 @@ pub fn extract_usage_from_sse_chunks(chunks: &[Bytes]) -> Option<serde_json::Val
     // Look for the last SSE data line that contains usage information
     for line in full_text.lines().rev() {
         let line = line.trim();
-        if line.starts_with("data: ") {
-            let data = &line[6..];
+        if let Some(data) = line.strip_prefix("data: ") {
             if data == "[DONE]" {
                 continue;
             }

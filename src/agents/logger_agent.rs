@@ -2,6 +2,7 @@ use crate::pricing::{self, PricingTable};
 use crate::proxy::normalizer::NormalizedUsage;
 
 /// Logger Agent output — computed from actual API response token counts.
+#[allow(dead_code)]
 #[derive(Debug, Clone)]
 pub struct LogEntry {
     pub input_tokens: i64,
@@ -21,6 +22,7 @@ pub struct LogEntry {
 /// Compute the full log entry from actual API response usage data.
 /// Token counts come directly from the LLM API response — they are accurate.
 /// Costs are calculated from those exact token counts × pricing rates.
+#[allow(dead_code)]
 pub fn compute_log_entry(
     usage: &NormalizedUsage,
     pricing_table: &PricingTable,

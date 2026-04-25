@@ -34,19 +34,17 @@ pub fn decide_route(
     }
 
     // 2. If cost_optimize is enabled, try to downgrade simple tasks to cheaper models
-    if config.routing.cost_optimize {
-        if is_simple_task(&msg_lower) {
-            // Downgrade to cheapest available model
-            let (cheap_provider, cheap_model) = cheapest_model(provider);
-            if cheap_model != model {
-                return RouteDecision {
-                    action: "substitute".to_string(),
-                    provider: cheap_provider.to_string(),
-                    model: cheap_model.to_string(),
-                    substitution_reason: Some("Simple task routed to cheaper model".to_string()),
-                    block_reason: None,
-                };
-            }
+    if config.routing.cost_optimize && is_simple_task(&msg_lower) {
+        // Downgrade to cheapest available model
+        let (cheap_provider, cheap_model) = cheapest_model(provider);
+        if cheap_model != model {
+            return RouteDecision {
+                action: "substitute".to_string(),
+                provider: cheap_provider.to_string(),
+                model: cheap_model.to_string(),
+                substitution_reason: Some("Simple task routed to cheaper model".to_string()),
+                block_reason: None,
+            };
         }
     }
 
