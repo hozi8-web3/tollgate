@@ -1,0 +1,59 @@
+name: Pricing Update Check
+
+on:
+  schedule:
+    # Run every Wednesday at 12:00 UTC
+    - cron: '0 12 * * 3'
+  workflow_dispatch:
+
+permissions:
+  contents: write
+  pull-requests: write
+
+jobs:
+  check-pricing:
+    name: Check LLM Pricing Updates
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Check pricing freshness
+        id: check
+        run: |
+          echo "Checking pricing.json last modified date..."
+          LAST_MODIFIED=$(git log -1 --format="%ai" -- pricing.json)
+          echo "Last modified: $LAST_MODIFIED"
+          
+          DAYS_OLD=$(( ($(date +%s) - $(date -d "$LAST_MODIFIED" +%s)) / 86400 ))
+          echo "days_old=$DAYS_OLD" >> $GITHUB_OUTPUT
+          
+          if [ $DAYS_OLD -gt 30 ]; then
+            echo "stale=true" >> $GITHUB_OUTPUT
+            echo "⚠️ Pricing data is $DAYS_OLD days old"
+          else
+            echo "stale=false" >> $GITHUB_OUTPUT
+            echo "✅ Pricing data is $DAYS_OLD days old (fresh)"
+          fi
+
+      - name: Create issue if stale
+        if: steps.check.outputs.stale == 'true'
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const existing = await github.rest.issues.listForRepo({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              labels: 'pricing-update',
+              state: 'open'
+            });
+            if (existing.data.length === 0) {
+              await github.rest.issues.create({
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                title: '🔄 Update LLM pricing data',
+                body: `The pricing.json file is ${process.env.DAYS_OLD} days old.\n\nPlease verify and update pricing for:\n- Anthropic (Claude models)\n- OpenAI (GPT models)\n- Groq (Llama models)\n\nCheck provider pricing pages for latest rates.`,
+                labels: ['pricing-update', 'maintenance']
+              });
+            }
+        env:
+          DAYS_OLD: ${{ steps.check.outputs.days_old }}

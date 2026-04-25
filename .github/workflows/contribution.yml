@@ -1,0 +1,33 @@
+name: Daily Contribution
+
+on:
+  schedule:
+    # Run daily at 12:00 UTC
+    - cron: '0 12 * * *'
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  contribute:
+    name: Auto Contribution
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          token: ${{ secrets.GITHUB_TOKEN }}
+          
+      - name: Make daily contribution
+        run: |
+          # Set up git config with your identity
+          git config --global user.name "Muhammad Hozaifa Ali"
+          git config --global user.email "hozaifabhojpur886@gmail.com"
+          
+          # Create or update a hidden file with the current date
+          date > .github/.contribution-tracker
+          
+          # Commit and push
+          git add .github/.contribution-tracker
+          git commit -m "chore: automated daily contribution [skip ci]" || echo "No changes to commit"
+          git push

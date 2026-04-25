@@ -1,0 +1,47 @@
+[package]
+name = "llm-cost-tracker"
+version = "0.1.0"
+edition = "2021"
+description = "A local reverse proxy that tracks and optimizes LLM API costs"
+license = "MIT"
+
+[[bin]]
+name = "lct"
+path = "src/main.rs"
+
+[dependencies]
+axum            = { version = "0.7", features = ["macros"] }
+tokio           = { version = "1", features = ["full"] }
+reqwest         = { version = "0.12", features = ["json", "stream"] }
+rusqlite        = { version = "0.31", features = ["bundled"] }
+serde           = { version = "1", features = ["derive"] }
+serde_json      = "1"
+toml            = "0.8"
+clap            = { version = "4", features = ["derive"] }
+chrono          = { version = "0.4", features = ["serde"] }
+uuid            = { version = "1", features = ["v4"] }
+tracing         = "0.1"
+tracing-subscriber = { version = "0.3", features = ["env-filter"] }
+anyhow          = "1"
+tokio-stream    = "0.1"
+futures-util    = "0.3"
+tower-http      = { version = "0.5", features = ["cors"] }
+bytes           = "1"
+dirs            = "5"
+csv             = "1"
+
+[features]
+gui = ["dep:eframe", "dep:egui"]
+
+[dependencies.eframe]
+version  = "0.27"
+optional = true
+
+[dependencies.egui]
+version  = "0.27"
+optional = true
+
+[profile.release]
+opt-level = 3
+lto       = true
+strip     = true

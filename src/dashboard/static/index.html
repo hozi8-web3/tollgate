@@ -1,0 +1,140 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="description" content="Tollgate — LLM Cost Tracker Dashboard. Monitor and optimize your AI spending.">
+    <title>Tollgate — LLM Cost Dashboard</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="/style.css">
+</head>
+<body>
+    <div class="app">
+        <header class="header">
+            <div class="header-left">
+                <div class="logo">
+                    <div class="logo-icon">⚡</div>
+                    <h1>Tollgate</h1>
+                </div>
+                <span class="badge">LLM Cost Tracker</span>
+            </div>
+            <div class="header-right">
+                <div class="period-selector" id="period-selector">
+                    <button class="period-btn active" data-days="7">7D</button>
+                    <button class="period-btn" data-days="30">30D</button>
+                    <button class="period-btn" data-days="90">90D</button>
+                </div>
+                <div class="status-indicator" id="status-indicator">
+                    <span class="status-dot"></span>
+                    <span class="status-text">Live</span>
+                </div>
+            </div>
+        </header>
+
+        <main class="main">
+            <!-- Stats Cards -->
+            <section class="stats-grid" id="stats-grid">
+                <div class="stat-card stat-spend">
+                    <div class="stat-icon">💰</div>
+                    <div class="stat-content">
+                        <div class="stat-label">Total Spend</div>
+                        <div class="stat-value" id="stat-spend">$0.00</div>
+                        <div class="stat-trend" id="stat-trend"></div>
+                    </div>
+                </div>
+                <div class="stat-card stat-requests">
+                    <div class="stat-icon">📡</div>
+                    <div class="stat-content">
+                        <div class="stat-label">Requests</div>
+                        <div class="stat-value" id="stat-requests">0</div>
+                        <div class="stat-sub" id="stat-avg-cost">Avg: $0.00/req</div>
+                    </div>
+                </div>
+                <div class="stat-card stat-tokens">
+                    <div class="stat-icon">🔤</div>
+                    <div class="stat-content">
+                        <div class="stat-label">Tokens</div>
+                        <div class="stat-value" id="stat-tokens">0</div>
+                        <div class="stat-sub" id="stat-token-split">In: 0 | Out: 0</div>
+                    </div>
+                </div>
+                <div class="stat-card stat-insight">
+                    <div class="stat-icon">💡</div>
+                    <div class="stat-content">
+                        <div class="stat-label">Top Insight</div>
+                        <div class="stat-insight-text" id="stat-top-insight">Loading...</div>
+                    </div>
+                </div>
+            </section>
+
+            <!-- Charts Row -->
+            <section class="charts-row">
+                <div class="card chart-card">
+                    <div class="card-header">
+                        <h2>Daily Spend</h2>
+                    </div>
+                    <div class="chart-container">
+                        <canvas id="spend-chart"></canvas>
+                    </div>
+                </div>
+                <div class="card model-card">
+                    <div class="card-header">
+                        <h2>Model Breakdown</h2>
+                    </div>
+                    <div class="model-list" id="model-list">
+                        <div class="empty-state">No data yet</div>
+                    </div>
+                </div>
+            </section>
+
+            <!-- Insights Panel -->
+            <section class="card insights-card" id="insights-panel">
+                <div class="card-header">
+                    <h2>💡 Insights & Recommendations</h2>
+                </div>
+                <div class="insights-content" id="insights-content">
+                    <div class="empty-state">Analyzing your usage...</div>
+                </div>
+            </section>
+
+            <!-- Request Log -->
+            <section class="card log-card">
+                <div class="card-header">
+                    <h2>Recent Requests</h2>
+                    <span class="card-badge" id="log-count">0</span>
+                </div>
+                <div class="table-wrapper">
+                    <table class="log-table" id="log-table">
+                        <thead>
+                            <tr>
+                                <th>Time</th>
+                                <th>Provider</th>
+                                <th>Model</th>
+                                <th>Task</th>
+                                <th>Tokens</th>
+                                <th>Cost</th>
+                                <th>Latency</th>
+                                <th>Status</th>
+                            </tr>
+                        </thead>
+                        <tbody id="log-body">
+                        </tbody>
+                    </table>
+                </div>
+            </section>
+        </main>
+
+        <footer class="footer">
+            <span>Tollgate v0.1.0</span>
+            <span>·</span>
+            <span>Proxy: localhost:4000</span>
+            <span>·</span>
+            <span id="refresh-timer">Refreshing in 30s</span>
+        </footer>
+    </div>
+
+    <script src="/app.js"></script>
+</body>
+</html>
