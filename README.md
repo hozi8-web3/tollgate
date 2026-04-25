@@ -2,8 +2,8 @@
 
 > Track, analyze, and optimize your LLM API costs. Single binary. Zero config. Works with any SDK.
 
-[![CI](https://github.com/YOUR_USERNAME/tollgate/actions/workflows/ci.yml/badge.svg)](https://github.com/YOUR_USERNAME/tollgate/actions/workflows/ci.yml)
-[![Release](https://github.com/YOUR_USERNAME/tollgate/actions/workflows/release.yml/badge.svg)](https://github.com/YOUR_USERNAME/tollgate/releases)
+[![CI](https://github.com/hozi8-web3/tollgate/actions/workflows/ci.yml/badge.svg)](https://github.com/hozi8-web3/tollgate/actions/workflows/ci.yml)
+[![Release](https://github.com/hozi8-web3/tollgate/actions/workflows/release.yml/badge.svg)](https://github.com/hozi8-web3/tollgate/releases)
 [![License: MIT](https://img.shields.io/badge/License-MIT-blue.svg)](LICENSE)
 
 ## What It Does
