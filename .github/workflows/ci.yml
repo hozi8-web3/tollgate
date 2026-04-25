@@ -40,6 +40,7 @@ jobs:
           git config --global user.email "hozaifabhojpur886@gmail.com"
           git add .
           git commit -m "style: auto-format rust code [skip ci]" || echo "Already formatted"
+          git pull --rebase origin main || true
           git push
 
   clippy:

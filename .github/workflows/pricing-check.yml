@@ -67,4 +67,5 @@ jobs:
           git config --global user.email "hozaifabhojpur886@gmail.com"
           git add pricing.json
           git commit -m "chore: verify LLM pricing data [skip ci]" || echo "No changes"
+          git pull --rebase origin main || true
           git push

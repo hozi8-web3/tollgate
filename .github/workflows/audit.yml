@@ -32,4 +32,5 @@ jobs:
           git config --global user.email "hozaifabhojpur886@gmail.com"
           git add Cargo.lock
           git commit -m "build(deps): auto-update rust dependencies [skip ci]" || echo "No dependencies to update"
+          git pull --rebase origin main || true
           git push
