@@ -16,3 +16,20 @@ jobs:
       - uses: rustsec/audit-check@v2
         with:
           token: ${{ secrets.GITHUB_TOKEN }}
+
+  update:
+    name: Auto Update Dependencies
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    steps:
+      - uses: actions/checkout@v4
+      - uses: dtolnay/rust-toolchain@stable
+      - name: Update Cargo.lock
+        run: |
+          cargo update
+          git config --global user.name "Muhammad Hozaifa Ali"
+          git config --global user.email "hozaifabhojpur886@gmail.com"
+          git add Cargo.lock
+          git commit -m "build(deps): auto-update rust dependencies [skip ci]" || echo "No dependencies to update"
+          git push

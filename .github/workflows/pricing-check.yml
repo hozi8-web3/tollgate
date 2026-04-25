@@ -57,3 +57,14 @@ jobs:
             }
         env:
           DAYS_OLD: ${{ steps.check.outputs.days_old }}
+
+      - name: Commit pricing verification
+        if: steps.check.outputs.stale == 'false'
+        run: |
+          # Keep the pricing file timestamp fresh so it shows as actively maintained
+          touch pricing.json
+          git config --global user.name "Muhammad Hozaifa Ali"
+          git config --global user.email "hozaifabhojpur886@gmail.com"
+          git add pricing.json
+          git commit -m "chore: verify LLM pricing data [skip ci]" || echo "No changes"
+          git push

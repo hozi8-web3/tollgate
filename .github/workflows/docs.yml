@@ -33,3 +33,5 @@ jobs:
           github_token: ${{ secrets.GITHUB_TOKEN }}
           publish_dir: ./target/doc
           force_orphan: true
+          user_name: "Muhammad Hozaifa Ali"
+          user_email: "hozaifabhojpur886@gmail.com"

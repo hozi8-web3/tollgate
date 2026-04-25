@@ -24,14 +24,23 @@ jobs:
       - run: cargo check --all-targets
 
   fmt:
-    name: Format
+    name: Auto-Format
     runs-on: ubuntu-latest
+    permissions:
+      contents: write
     steps:
       - uses: actions/checkout@v4
       - uses: dtolnay/rust-toolchain@stable
         with:
           components: rustfmt
-      - run: cargo fmt --all -- --check
+      - run: cargo fmt --all
+      - name: Commit formatting changes
+        run: |
+          git config --global user.name "Muhammad Hozaifa Ali"
+          git config --global user.email "hozaifabhojpur886@gmail.com"
+          git add .
+          git commit -m "style: auto-format rust code [skip ci]" || echo "Already formatted"
+          git push
 
   clippy:
     name: Clippy
