@@ -1,0 +1,1 @@
+window.SIDEBAR_ITEMS = {"fn":["cheapest_model","decide_route","is_simple_task"],"struct":["RouteDecision"]};

@@ -1,0 +1,1 @@
+window.SIDEBAR_ITEMS = {"fn":["create_router","serve_css","serve_index","serve_js"]};

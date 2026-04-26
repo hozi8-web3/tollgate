@@ -1,0 +1,1 @@
+window.SIDEBAR_ITEMS = {"fn":["init"],"mod":["read","schema","write"],"type":["DbPool"]};

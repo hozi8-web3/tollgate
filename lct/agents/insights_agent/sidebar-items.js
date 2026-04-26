@@ -1,0 +1,1 @@
+window.SIDEBAR_ITEMS = {"fn":["generate_insights"],"struct":["InsightsOutput","Recommendation"]};

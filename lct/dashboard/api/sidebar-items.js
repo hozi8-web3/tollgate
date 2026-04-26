@@ -1,0 +1,1 @@
+window.SIDEBAR_ITEMS = {"fn":["daily_spend","default_limit","default_period","health","insights","models","requests","stats","tasks"],"struct":["PaginationParams","PeriodParams"]};

@@ -1,0 +1,1 @@
+window.SIDEBAR_ITEMS = {"fn":["calculate_costs","load_pricing","lookup"],"struct":["CostBreakdown","ModelPricing"],"type":["PricingTable"]};
